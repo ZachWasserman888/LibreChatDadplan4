@@ -3,19 +3,17 @@ version: 1.2.8
 endpoints:
   custom:
     - name: "ask"
-      baseURL: "https://cc8e8c67-86e1-4406-b111-2ee0e380d077-00-75wtci6s9x0t.kirk.replit.dev"
+      apiBaseUrl: "https://cc8e8c67-86e1-4406-b111-2ee0e380d077-00-75wtci6s9x0t.kirk.replit.dev"
       modelDisplayLabel: "RAG (Replit)"
       apiKey: "system"
-      apiType: "openai"           # ✅ forces /v1/chat/completions
-      isUserProvided: false       # ✅ disables UI key prompt logic
+      apiType: "openai"
+      isUserProvided: false
       models:
         default: ["ask"]
         chat: ["ask"]
-      titleConvo: true
-      titleModel: "ask"
 
     - name: "noop"
-      baseURL: "https://example.com"
+      apiBaseUrl: "https://example.com"
       modelDisplayLabel: "Fake Model"
       apiKey: "system"
       apiType: "openai"
@@ -23,5 +21,6 @@ endpoints:
       models:
         default: ["noop"]
         chat: ["noop"]
-      titleConvo: false
-      titleModel: "noop"
+
+titleConvo:
+  model: ask
