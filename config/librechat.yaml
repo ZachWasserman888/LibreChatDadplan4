@@ -5,7 +5,9 @@ endpoints:
     - name: "ask"
       baseURL: "https://cc8e8c67-86e1-4406-b111-2ee0e380d077-00-75wtci6s9x0t.kirk.replit.dev"
       modelDisplayLabel: "RAG (Replit)"
-      apiKey: "system"  # ✅ key logic disabled
+      apiKey: "system"
+      apiType: "openai"           # ✅ forces /v1/chat/completions
+      isUserProvided: false       # ✅ disables UI key prompt logic
       models:
         default: ["ask"]
         chat: ["ask"]
@@ -15,7 +17,9 @@ endpoints:
     - name: "noop"
       baseURL: "https://example.com"
       modelDisplayLabel: "Fake Model"
-      apiKey: "system"  # ✅ key logic disabled
+      apiKey: "system"
+      apiType: "openai"
+      isUserProvided: false
       models:
         default: ["noop"]
         chat: ["noop"]
