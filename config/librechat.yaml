@@ -1,8 +1,5 @@
 version: 1.2.8
 
-titleConvo:
-  model: ask
-
 endpoints:
   custom:
     - name: "ask"
@@ -11,6 +8,8 @@ endpoints:
       apiKey: "system"
       apiType: "openai"
       isUserProvided: false
+      titleConvo: true              # ✅ now correctly nested
+      titleModel: "ask"             # ✅ now correctly nested
       models:
         default: ["ask"]
         chat: ["ask"]
