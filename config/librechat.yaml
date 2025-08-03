@@ -5,8 +5,7 @@ endpoints:
     - name: "ask"
       baseURL: "https://cc8e8c67-86e1-4406-b111-2ee0e380d077-00-75wtci6s9x0t.kirk.replit.dev"
       modelDisplayLabel: "RAG (Replit)"
-      apiKey: "user_provided"
-      hideAPIKeyInput: true
+      apiKey: "system"  # ✅ key logic disabled
       models:
         default: ["ask"]
         chat: ["ask"]
@@ -16,8 +15,7 @@ endpoints:
     - name: "noop"
       baseURL: "https://example.com"
       modelDisplayLabel: "Fake Model"
-      apiKey: "user_provided"
-      hideAPIKeyInput: true
+      apiKey: "system"  # ✅ key logic disabled
       models:
         default: ["noop"]
         chat: ["noop"]
