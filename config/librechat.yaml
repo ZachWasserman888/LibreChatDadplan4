@@ -1,5 +1,8 @@
 version: 1.2.8
 
+titleConvo:
+  model: ask
+
 endpoints:
   custom:
     - name: "ask"
@@ -21,6 +24,3 @@ endpoints:
       models:
         default: ["noop"]
         chat: ["noop"]
-
-titleConvo:
-  model: ask
