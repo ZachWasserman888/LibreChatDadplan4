@@ -8,8 +8,8 @@ endpoints:
       apiKey: "system"
       apiType: "openai"
       isUserProvided: false
-      titleConvo: true              # ✅ now correctly nested
-      titleModel: "ask"             # ✅ now correctly nested
+      titleConvo: true
+      titleModel: "ask"
       models:
         default: ["ask"]
         chat: ["ask"]
