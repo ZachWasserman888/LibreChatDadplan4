@@ -1,5 +1,7 @@
 version: 1.2.8
 
+defaultModel: ask  # ✅ Ensures "ask" is used at startup and appears in the dropdown
+
 endpoints:
   custom:
     - name: "ask"
