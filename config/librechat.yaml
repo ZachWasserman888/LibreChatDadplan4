@@ -10,7 +10,7 @@ endpoints:
         default: ["ask"]
         chat: ["ask"]
       titleConvo: true
-      titleModel: "current_model"
+      titleModel: "ask"
 
     - name: "noop"
       baseURL: "https://example.com"
