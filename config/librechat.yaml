@@ -5,19 +5,9 @@ endpoints:
     - name: "ask"
       baseURL: "https://cc8e8c67-86e1-4406-b111-2ee0e380d077-00-75wtci6s9x0t.kirk.replit.dev"
       modelDisplayLabel: "RAG (Replit)"
-      apiKey: "system"  # ✅ disables key auth
+      apiKey: "system"
       models:
         default: ["ask"]
         chat: ["ask"]
       titleConvo: true
       titleModel: "current_model"
-
-    - name: "noop"
-      baseURL: "https://example.com"
-      modelDisplayLabel: "Fake Model"
-      apiKey: "system"
-      models:
-        default: ["noop"]
-        chat: ["noop"]
-      titleConvo: false
-      titleModel: "noop"
