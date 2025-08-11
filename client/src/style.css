@@ -2799,3 +2799,48 @@ html {
 .custom-style-2 {
   padding: 12px;
 }
+
+/* =========================
+   Kyuzo logo on empty chat
+   ========================= */
+
+/* 1) Show the logo by default on the center chat column */
+:root .flex.h-full.flex-col.focus-within\:outline-none::before,
+:root [class*="flex"][class*="h-full"][class*="flex-col"][class*="focus-within"]::before {
+  content: "";
+  display: block;
+  width: 220px;         /* tweak size here */
+  height: 132px;        /* keep your aspect ratio */
+  margin: 28px auto;    /* center in the column */
+  background-image: url('/judo.jpg');  /* file must be in /public */
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0.9;         /* looks nicer in light/dark */
+  pointer-events: none; /* never capture clicks */
+}
+
+/* 2) Hide the logo when messages exist (modern browsers) */
+@supports selector(:has(*)) {
+  .flex.h-full.flex-col.focus-within\:outline-none:has(.message, .conversation-turn, [data-testid="message"])::before,
+  [class*="flex"][class*="h-full"][class*="flex-col"][class*="focus-within"]:has(.message, .conversation-turn, [data-testid="message"])::before {
+    display: none;
+  }
+}
+
+/* 3) Dark mode slight dim (optional) */
+.dark .flex.h-full.flex-col.focus-within\:outline-none::before,
+.dark [class*="flex"][class*="h-full"][class*="flex-col"][class*="focus-within"]::before {
+  opacity: 0.75;
+}
+
+/* 4) Small screens: scale down (optional) */
+@media (max-width: 480px) {
+  :root .flex.h-full.flex-col.focus-within\:outline-none::before,
+  :root [class*="flex"][class*="h-full"][class*="flex-col"][class*="focus-within"]::before {
+    width: 160px;
+    height: 96px;
+    margin: 16px auto;
+  }
+}
+
