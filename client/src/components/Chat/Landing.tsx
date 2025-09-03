@@ -30,9 +30,12 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
   const [textHasMultipleLines, setTextHasMultipleLines] = useState(false);
   const [lineCount, setLineCount] = useState(1);
   const [contentHeight, setContentHeight] = useState(0);
+  const [showBrand, setShowBrand] = useState(true);
   const contentRef = useRef<HTMLDivElement>(null);
 
-  // --- resolve endpoint type for icon/name/description ---
+  // ✅ Safe public path (works on subpaths)
+  const brandSrc = `${import.meta.env.BASE_URL}judo.jpg`;
+
   const endpointType = useMemo(() => {
     let ep = conversation?.endpoint ?? '';
     if (
@@ -62,7 +65,6 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
   const name = entity?.name ?? '';
   const description = (entity?.description || conversation?.greeting) ?? '';
 
-  // --- greeting text (supports customWelcome and {{user.name}}) ---
   const getGreeting = useCallback(() => {
     if (typeof startupConfig?.interface?.customWelcome === 'string') {
       const customWelcome = startupConfig.interface.customWelcome;
@@ -89,9 +91,7 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
   }, []);
 
   useEffect(() => {
-    if (contentRef.current) {
-      setContentHeight(contentRef.current.offsetHeight);
-    }
+    if (contentRef.current) setContentHeight(contentRef.current.offsetHeight);
   }, [lineCount, description]);
 
   const getDynamicMargin = useMemo(() => {
@@ -110,21 +110,6 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
       ? getGreeting()
       : getGreeting() + (user?.name ? ', ' + user.name : '');
 
-  // --- HERO IMAGE (brand banner) with robust path fallback (/c/ vs /) ---
-  const baseURL = (import.meta as any)?.env?.BASE_URL ?? '/';
-  const primarySrc = `${baseURL.replace(/\/?$/, '/') }judo.jpg`; // e.g., /c/judo.jpg on Render
-  const fallbackOrder = ['/c/judo.jpg', '/judo.jpg']; // try both if primary fails
-
-  const [heroSrc, setHeroSrc] = useState<string>(primarySrc);
-  const tried = useRef<Set<string>>(new Set([primarySrc]));
-  const onImgError = () => {
-    const next = fallbackOrder.find((p) => !tried.current.has(p));
-    if (next) {
-      tried.current.add(next);
-      setHeroSrc(next);
-    }
-  };
-
   return (
     <div
       className={`flex h-full transform-gpu flex-col items-center justify-center pb-16 transition-all duration-200 ${
@@ -132,18 +117,19 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
       } ${getDynamicMargin}`}
     >
       <div ref={contentRef} className="flex w-full flex-col items-center gap-0 p-2">
-
-        {/* HERO BANNER */}
-        <div className="mb-6 flex w-full justify-center">
-          <img
-            src={heroSrc}
-            onError={onImgError}
-            alt="Brand"
-            loading="eager"
-            decoding="sync"
-            className="w-[92vw] max-w-[1000px] h-[160px] sm:h-[200px] md:h-[260px] object-contain rounded-2xl ring-1 ring-black/5 dark:ring-white/10 bg-white dark:bg-gray-900 p-2 shadow"
-          />
-        </div>
+        {/* HERO BANNER from /public */}
+        {showBrand && (
+          <div className="mb-6 flex w-full justify-center">
+            <img
+              src={brandSrc}
+              alt="Brand"
+              loading="eager"
+              decoding="sync"
+              className="w-[92vw] max-w-[1000px] h-[160px] sm:h-[200px] md:h-[260px] object-contain rounded-2xl ring-1 ring-black/5 dark:ring-white/10 bg-white dark:bg-gray-900 p-2 shadow"
+              onError={() => setShowBrand(false)} // hide if 404
+            />
+          </div>
+        )}
 
         <div
           className={`flex ${textHasMultipleLines ? 'flex-col' : 'flex-col md:flex-row'} items-center justify-center gap-2`}
