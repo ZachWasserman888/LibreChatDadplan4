@@ -4,8 +4,12 @@ import { EModelEndpoint } from 'librechat-data-provider';
 import { BirthdayIcon, TooltipAnchor, SplitText } from '@librechat/client';
 import { useChatContext, useAgentsMapContext, useAssistantsMapContext } from '~/Providers';
 import { useGetEndpointsQuery, useGetStartupConfig } from '~/data-provider';
+import ConvoIcon from '~/components/Endpoints/ConvoIcon';
 import { useLocalize, useAuthContext } from '~/hooks';
 import { getIconEndpoint, getEntity } from '~/utils';
+
+const containerClassName =
+  'shadow-stroke relative flex h-full items-center justify-center rounded-full bg-white dark:bg-presentation dark:text-white text-black dark:after:shadow-none ';
 
 function getTextSizeClass(text: string | undefined | null) {
   if (!text) return 'text-xl sm:text-2xl';
@@ -28,6 +32,7 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
   const [contentHeight, setContentHeight] = useState(0);
   const contentRef = useRef<HTMLDivElement>(null);
 
+  // --- resolve endpoint type for icon/name/description ---
   const endpointType = useMemo(() => {
     let ep = conversation?.endpoint ?? '';
     if (
@@ -57,6 +62,7 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
   const name = entity?.name ?? '';
   const description = (entity?.description || conversation?.greeting) ?? '';
 
+  // --- greeting text (supports customWelcome and {{user.name}}) ---
   const getGreeting = useCallback(() => {
     if (typeof startupConfig?.interface?.customWelcome === 'string') {
       const customWelcome = startupConfig.interface.customWelcome;
@@ -65,10 +71,12 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
       }
       return customWelcome;
     }
+
     const now = new Date();
     const hours = now.getHours();
     const dayOfWeek = now.getDay();
     const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+
     if (hours >= 0 && hours < 5) return localize('com_ui_late_night');
     if (hours < 12) return isWeekend ? localize('com_ui_weekend_morning') : localize('com_ui_good_morning');
     if (hours < 17) return localize('com_ui_good_afternoon');
@@ -81,7 +89,9 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
   }, []);
 
   useEffect(() => {
-    if (contentRef.current) setContentHeight(contentRef.current.offsetHeight);
+    if (contentRef.current) {
+      setContentHeight(contentRef.current.offsetHeight);
+    }
   }, [lineCount, description]);
 
   const getDynamicMargin = useMemo(() => {
@@ -89,6 +99,7 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
     if (lineCount > 2 || (description && description.length > 100)) margin = 'mb-10';
     else if (lineCount > 1 || (description && description.length > 0)) margin = 'mb-6';
     else if (textHasMultipleLines) margin = 'mb-4';
+
     if (contentHeight > 200) margin = 'mb-16';
     else if (contentHeight > 150) margin = 'mb-12';
     return margin;
@@ -99,13 +110,19 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
       ? getGreeting()
       : getGreeting() + (user?.name ? ', ' + user.name : '');
 
-  // --- HERO styles (multi-background fallback: first that loads will show) ---
-  const heroStyle: React.CSSProperties = {
-    backgroundImage:
-      "url('/c/judo.jpg?v=1'), url('/judo.jpg?v=1')", // try /c first (Render), then root
-    backgroundRepeat: 'no-repeat, no-repeat',
-    backgroundPosition: 'center, center',
-    backgroundSize: 'contain, contain',
+  // --- HERO IMAGE (brand banner) with robust path fallback (/c/ vs /) ---
+  const baseURL = (import.meta as any)?.env?.BASE_URL ?? '/';
+  const primarySrc = `${baseURL.replace(/\/?$/, '/') }judo.jpg`; // e.g., /c/judo.jpg on Render
+  const fallbackOrder = ['/c/judo.jpg', '/judo.jpg']; // try both if primary fails
+
+  const [heroSrc, setHeroSrc] = useState<string>(primarySrc);
+  const tried = useRef<Set<string>>(new Set([primarySrc]));
+  const onImgError = () => {
+    const next = fallbackOrder.find((p) => !tried.current.has(p));
+    if (next) {
+      tried.current.add(next);
+      setHeroSrc(next);
+    }
   };
 
   return (
@@ -114,27 +131,43 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
         centerFormOnLanding ? 'max-h-full sm:max-h-0' : 'max-h-full'
       } ${getDynamicMargin}`}
     >
-      {/* HERO BANNER */}
-      <div className="mb-6 flex w-full justify-center">
-        <div
-          style={heroStyle}
-          className="w-[92vw] max-w-[1000px] h-[160px] sm:h-[200px] md:h-[260px] rounded-2xl ring-1 ring-black/5 dark:ring-white/10 bg-white dark:bg-gray-900 p-2 shadow"
-          aria-label="Brand image"
-        />
-      </div>
+      <div ref={contentRef} className="flex w-full flex-col items-center gap-0 p-2">
 
-      <div ref={contentRef} className="flex flex-col items-center gap-0 p-2">
-        <div className={`flex ${textHasMultipleLines ? 'flex-col' : 'flex-col md:flex-row'} items-center justify-center gap-2`}>
-          {startupConfig?.showBirthdayIcon && (
-            <div className="relative">
+        {/* HERO BANNER */}
+        <div className="mb-6 flex w-full justify-center">
+          <img
+            src={heroSrc}
+            onError={onImgError}
+            alt="Brand"
+            loading="eager"
+            decoding="sync"
+            className="w-[92vw] max-w-[1000px] h-[160px] sm:h-[200px] md:h-[260px] object-contain rounded-2xl ring-1 ring-black/5 dark:ring-white/10 bg-white dark:bg-gray-900 p-2 shadow"
+          />
+        </div>
+
+        <div
+          className={`flex ${textHasMultipleLines ? 'flex-col' : 'flex-col md:flex-row'} items-center justify-center gap-2`}
+        >
+          <div className={`relative size-10 justify-center ${textHasMultipleLines ? 'mb-2' : ''}`}>
+            <ConvoIcon
+              agentsMap={agentsMap}
+              assistantMap={assistantMap}
+              conversation={conversation}
+              endpointsConfig={endpointsConfig}
+              containerClassName={containerClassName}
+              context="landing"
+              className="h-2/3 w-2/3 text-black dark:text-white"
+              size={41}
+            />
+            {startupConfig?.showBirthdayIcon && (
               <TooltipAnchor
-                className="absolute -top-6 right-0"
+                className="absolute bottom-[27px] right-2"
                 description={localize('com_ui_happy_birthday')}
               >
                 <BirthdayIcon />
               </TooltipAnchor>
-            </div>
-          )}
+            )}
+          </div>
 
           {((isAgent || isAssistant) && name) || name ? (
             <div className="flex flex-col items-center gap-0 p-2">
