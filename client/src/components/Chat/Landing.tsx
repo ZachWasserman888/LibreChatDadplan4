@@ -7,19 +7,10 @@ import { useGetEndpointsQuery, useGetStartupConfig } from '~/data-provider';
 import { useLocalize, useAuthContext } from '~/hooks';
 import { getIconEndpoint, getEntity } from '~/utils';
 
-const containerClassName =
-  'shadow-stroke relative flex h-full items-center justify-center rounded-full bg-white dark:bg-presentation dark:text-white text-black dark:after:shadow-none ';
-
 function getTextSizeClass(text: string | undefined | null) {
-  if (!text) {
-    return 'text-xl sm:text-2xl';
-  }
-  if (text.length < 40) {
-    return 'text-2xl sm:text-4xl';
-  }
-  if (text.length < 70) {
-    return 'text-xl sm:text-2xl';
-  }
+  if (!text) return 'text-xl sm:text-2xl';
+  if (text.length < 40) return 'text-2xl sm:text-4xl';
+  if (text.length < 70) return 'text-xl sm:text-2xl';
   return 'text-lg sm:text-md';
 }
 
@@ -46,7 +37,7 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
         EModelEndpoint.gptPlugins,
       ].includes(ep as EModelEndpoint)
     ) {
-        ep = EModelEndpoint.openAI;
+      ep = EModelEndpoint.openAI;
     }
     return getIconEndpoint({
       endpointsConfig,
@@ -74,21 +65,14 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
       }
       return customWelcome;
     }
-
     const now = new Date();
     const hours = now.getHours();
     const dayOfWeek = now.getDay();
     const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-
-    if (hours >= 0 && hours < 5) {
-      return localize('com_ui_late_night');
-    } else if (hours < 12) {
-      return isWeekend ? localize('com_ui_weekend_morning') : localize('com_ui_good_morning');
-    } else if (hours < 17) {
-      return localize('com_ui_good_afternoon');
-    } else {
-      return localize('com_ui_good_evening');
-    }
+    if (hours >= 0 && hours < 5) return localize('com_ui_late_night');
+    if (hours < 12) return isWeekend ? localize('com_ui_weekend_morning') : localize('com_ui_good_morning');
+    if (hours < 17) return localize('com_ui_good_afternoon');
+    return localize('com_ui_good_evening');
   }, [localize, startupConfig?.interface?.customWelcome, user?.name]);
 
   const handleLineCountChange = useCallback((count: number) => {
@@ -97,25 +81,16 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
   }, []);
 
   useEffect(() => {
-    if (contentRef.current) {
-      setContentHeight(contentRef.current.offsetHeight);
-    }
+    if (contentRef.current) setContentHeight(contentRef.current.offsetHeight);
   }, [lineCount, description]);
 
   const getDynamicMargin = useMemo(() => {
     let margin = 'mb-0';
-    if (lineCount > 2 || (description && description.length > 100)) {
-      margin = 'mb-10';
-    } else if (lineCount > 1 || (description && description.length > 0)) {
-      margin = 'mb-6';
-    } else if (textHasMultipleLines) {
-      margin = 'mb-4';
-    }
-    if (contentHeight > 200) {
-      margin = 'mb-16';
-    } else if (contentHeight > 150) {
-      margin = 'mb-12';
-    }
+    if (lineCount > 2 || (description && description.length > 100)) margin = 'mb-10';
+    else if (lineCount > 1 || (description && description.length > 0)) margin = 'mb-6';
+    else if (textHasMultipleLines) margin = 'mb-4';
+    if (contentHeight > 200) margin = 'mb-16';
+    else if (contentHeight > 150) margin = 'mb-12';
     return margin;
   }, [lineCount, description, textHasMultipleLines, contentHeight]);
 
@@ -124,9 +99,9 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
       ? getGreeting()
       : getGreeting() + (user?.name ? ', ' + user.name : '');
 
-  // --- Base-path safe asset (works locally "/" and on Render "/c/") ---
-  const BASE = (import.meta as any).env?.BASE_URL || '/';
-  const logo = `${BASE}judo.jpg`;
+  // Big hero image (tries /c/judo.jpg on Render, falls back to /judo.jpg; hides if both fail)
+  const [imgSrc, setImgSrc] = useState<string>('/c/judo.jpg');
+  const [showHero, setShowHero] = useState<boolean>(true);
 
   return (
     <div
@@ -134,28 +109,36 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
         centerFormOnLanding ? 'max-h-full sm:max-h-0' : 'max-h-full'
       } ${getDynamicMargin}`}
     >
+      {/* HERO IMAGE */}
+      {showHero && (
+        <div className="mb-6 flex w-full justify-center">
+          <img
+            src={imgSrc}
+            alt="Brand"
+            loading="eager"
+            decoding="async"
+            className="w-[92vw] max-w-[900px] h-[140px] sm:h-[180px] md:h-[220px] object-contain rounded-2xl ring-1 ring-black/5 dark:ring-white/10 bg-white dark:bg-gray-900 p-2 shadow"
+            onError={() => {
+              if (imgSrc !== '/judo.jpg') setImgSrc('/judo.jpg');
+              else setShowHero(false);
+            }}
+          />
+        </div>
+      )}
+
       <div ref={contentRef} className="flex flex-col items-center gap-0 p-2">
-        <div
-          className={`flex ${textHasMultipleLines ? 'flex-col' : 'flex-col md:flex-row'} items-center justify-center gap-2`}
-        >
-          {/* Brand image replacing the default ConvoIcon */}
-          <div className={`relative ${textHasMultipleLines ? 'mb-2' : ''} ${containerClassName} size-14 md:size-16`}>
-            <img
-              src={logo}
-              alt="Brand"
-              className="h-full w-full rounded-full object-cover"
-              loading="eager"
-              decoding="async"
-            />
-            {startupConfig?.showBirthdayIcon && (
+        <div className={`flex ${textHasMultipleLines ? 'flex-col' : 'flex-col md:flex-row'} items-center justify-center gap-2`}>
+          {/* Birthday badge stays (optional) */}
+          {startupConfig?.showBirthdayIcon && (
+            <div className="relative">
               <TooltipAnchor
-                className="absolute bottom-[27px] right-2"
+                className="absolute -top-6 right-0"
                 description={localize('com_ui_happy_birthday')}
               >
                 <BirthdayIcon />
               </TooltipAnchor>
-            )}
-          </div>
+            </div>
+          )}
 
           {((isAgent || isAssistant) && name) || name ? (
             <div className="flex flex-col items-center gap-0 p-2">
@@ -199,3 +182,4 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
     </div>
   );
 }
+
