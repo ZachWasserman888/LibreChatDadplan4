@@ -99,9 +99,14 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
       ? getGreeting()
       : getGreeting() + (user?.name ? ', ' + user.name : '');
 
-  // Big hero image (tries /c/judo.jpg on Render, falls back to /judo.jpg; hides if both fail)
-  const [imgSrc, setImgSrc] = useState<string>('/c/judo.jpg');
-  const [showHero, setShowHero] = useState<boolean>(true);
+  // --- HERO styles (multi-background fallback: first that loads will show) ---
+  const heroStyle: React.CSSProperties = {
+    backgroundImage:
+      "url('/c/judo.jpg?v=1'), url('/judo.jpg?v=1')", // try /c first (Render), then root
+    backgroundRepeat: 'no-repeat, no-repeat',
+    backgroundPosition: 'center, center',
+    backgroundSize: 'contain, contain',
+  };
 
   return (
     <div
@@ -109,26 +114,17 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
         centerFormOnLanding ? 'max-h-full sm:max-h-0' : 'max-h-full'
       } ${getDynamicMargin}`}
     >
-      {/* HERO IMAGE */}
-      {showHero && (
-        <div className="mb-6 flex w-full justify-center">
-          <img
-            src={imgSrc}
-            alt="Brand"
-            loading="eager"
-            decoding="async"
-            className="w-[92vw] max-w-[900px] h-[140px] sm:h-[180px] md:h-[220px] object-contain rounded-2xl ring-1 ring-black/5 dark:ring-white/10 bg-white dark:bg-gray-900 p-2 shadow"
-            onError={() => {
-              if (imgSrc !== '/judo.jpg') setImgSrc('/judo.jpg');
-              else setShowHero(false);
-            }}
-          />
-        </div>
-      )}
+      {/* HERO BANNER */}
+      <div className="mb-6 flex w-full justify-center">
+        <div
+          style={heroStyle}
+          className="w-[92vw] max-w-[1000px] h-[160px] sm:h-[200px] md:h-[260px] rounded-2xl ring-1 ring-black/5 dark:ring-white/10 bg-white dark:bg-gray-900 p-2 shadow"
+          aria-label="Brand image"
+        />
+      </div>
 
       <div ref={contentRef} className="flex flex-col items-center gap-0 p-2">
         <div className={`flex ${textHasMultipleLines ? 'flex-col' : 'flex-col md:flex-row'} items-center justify-center gap-2`}>
-          {/* Birthday badge stays (optional) */}
           {startupConfig?.showBirthdayIcon && (
             <div className="relative">
               <TooltipAnchor
@@ -182,4 +178,3 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
     </div>
   );
 }
-
