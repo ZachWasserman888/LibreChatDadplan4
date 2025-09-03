@@ -4,7 +4,6 @@ import { EModelEndpoint } from 'librechat-data-provider';
 import { BirthdayIcon, TooltipAnchor, SplitText } from '@librechat/client';
 import { useChatContext, useAgentsMapContext, useAssistantsMapContext } from '~/Providers';
 import { useGetEndpointsQuery, useGetStartupConfig } from '~/data-provider';
-import ConvoIcon from '~/components/Endpoints/ConvoIcon';
 import { useLocalize, useAuthContext } from '~/hooks';
 import { getIconEndpoint, getEntity } from '~/utils';
 
@@ -15,15 +14,12 @@ function getTextSizeClass(text: string | undefined | null) {
   if (!text) {
     return 'text-xl sm:text-2xl';
   }
-
   if (text.length < 40) {
     return 'text-2xl sm:text-4xl';
   }
-
   if (text.length < 70) {
     return 'text-xl sm:text-2xl';
   }
-
   return 'text-lg sm:text-md';
 }
 
@@ -50,7 +46,7 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
         EModelEndpoint.gptPlugins,
       ].includes(ep as EModelEndpoint)
     ) {
-      ep = EModelEndpoint.openAI;
+        ep = EModelEndpoint.openAI;
     }
     return getIconEndpoint({
       endpointsConfig,
@@ -73,7 +69,6 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
   const getGreeting = useCallback(() => {
     if (typeof startupConfig?.interface?.customWelcome === 'string') {
       const customWelcome = startupConfig.interface.customWelcome;
-      // Replace {{user.name}} with actual user name if available
       if (user?.name && customWelcome.includes('{{user.name}}')) {
         return customWelcome.replace(/{{user.name}}/g, user.name);
       }
@@ -82,27 +77,16 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
 
     const now = new Date();
     const hours = now.getHours();
-
     const dayOfWeek = now.getDay();
     const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
 
-    // Early morning (midnight to 4:59 AM)
     if (hours >= 0 && hours < 5) {
       return localize('com_ui_late_night');
-    }
-    // Morning (6 AM to 11:59 AM)
-    else if (hours < 12) {
-      if (isWeekend) {
-        return localize('com_ui_weekend_morning');
-      }
-      return localize('com_ui_good_morning');
-    }
-    // Afternoon (12 PM to 4:59 PM)
-    else if (hours < 17) {
+    } else if (hours < 12) {
+      return isWeekend ? localize('com_ui_weekend_morning') : localize('com_ui_good_morning');
+    } else if (hours < 17) {
       return localize('com_ui_good_afternoon');
-    }
-    // Evening (5 PM to 8:59 PM)
-    else {
+    } else {
       return localize('com_ui_good_evening');
     }
   }, [localize, startupConfig?.interface?.customWelcome, user?.name]);
@@ -120,7 +104,6 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
 
   const getDynamicMargin = useMemo(() => {
     let margin = 'mb-0';
-
     if (lineCount > 2 || (description && description.length > 100)) {
       margin = 'mb-10';
     } else if (lineCount > 1 || (description && description.length > 0)) {
@@ -128,13 +111,11 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
     } else if (textHasMultipleLines) {
       margin = 'mb-4';
     }
-
     if (contentHeight > 200) {
       margin = 'mb-16';
     } else if (contentHeight > 150) {
       margin = 'mb-12';
     }
-
     return margin;
   }, [lineCount, description, textHasMultipleLines, contentHeight]);
 
@@ -143,24 +124,28 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
       ? getGreeting()
       : getGreeting() + (user?.name ? ', ' + user.name : '');
 
+  // --- Base-path safe asset (works locally "/" and on Render "/c/") ---
+  const BASE = (import.meta as any).env?.BASE_URL || '/';
+  const logo = `${BASE}judo.jpg`;
+
   return (
     <div
-      className={`flex h-full transform-gpu flex-col items-center justify-center pb-16 transition-all duration-200 ${centerFormOnLanding ? 'max-h-full sm:max-h-0' : 'max-h-full'} ${getDynamicMargin}`}
+      className={`flex h-full transform-gpu flex-col items-center justify-center pb-16 transition-all duration-200 ${
+        centerFormOnLanding ? 'max-h-full sm:max-h-0' : 'max-h-full'
+      } ${getDynamicMargin}`}
     >
       <div ref={contentRef} className="flex flex-col items-center gap-0 p-2">
         <div
           className={`flex ${textHasMultipleLines ? 'flex-col' : 'flex-col md:flex-row'} items-center justify-center gap-2`}
         >
-          <div className={`relative size-10 justify-center ${textHasMultipleLines ? 'mb-2' : ''}`}>
-            <ConvoIcon
-              agentsMap={agentsMap}
-              assistantMap={assistantMap}
-              conversation={conversation}
-              endpointsConfig={endpointsConfig}
-              containerClassName={containerClassName}
-              context="landing"
-              className="h-2/3 w-2/3 text-black dark:text-white"
-              size={41}
+          {/* Brand image replacing the default ConvoIcon */}
+          <div className={`relative ${textHasMultipleLines ? 'mb-2' : ''} ${containerClassName} size-14 md:size-16`}>
+            <img
+              src={logo}
+              alt="Brand"
+              className="h-full w-full rounded-full object-cover"
+              loading="eager"
+              decoding="async"
             />
             {startupConfig?.showBirthdayIcon && (
               <TooltipAnchor
@@ -171,6 +156,7 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
               </TooltipAnchor>
             )}
           </div>
+
           {((isAgent || isAssistant) && name) || name ? (
             <div className="flex flex-col items-center gap-0 p-2">
               <SplitText
@@ -203,6 +189,7 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
             />
           )}
         </div>
+
         {description && (
           <div className="animate-fadeIn mt-4 max-w-md text-center text-sm font-normal text-text-primary">
             {description}
