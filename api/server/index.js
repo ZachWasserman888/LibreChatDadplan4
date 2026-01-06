@@ -1,4 +1,25 @@
 require('dotenv').config();
+
+/**
+ * ------------------------------------------------------------------
+ * PATCH: Allow long-running outbound streaming (SSE) requests
+ * Node 18+ uses undici internally for fetch. Without this, long
+ * streaming responses can be terminated after ~5 minutes.
+ * ------------------------------------------------------------------
+ */
+try {
+  const { setGlobalDispatcher, Agent } = require('undici');
+
+  setGlobalDispatcher(
+    new Agent({
+      headersTimeout: 0, // disable timeout (or set to e.g. 30 * 60 * 1000)
+      bodyTimeout: 0,    // disable timeout (or set to e.g. 30 * 60 * 1000)
+    })
+  );
+} catch (e) {
+  // Do not crash if undici is unavailable for any reason
+}
+
 const fs = require('fs');
 const path = require('path');
 require('module-alias')({ base: path.resolve(__dirname, '..') });
@@ -36,6 +57,7 @@ const startServer = async () => {
   if (typeof Bun !== 'undefined') {
     axios.defaults.headers.common['Accept-Encoding'] = 'gzip';
   }
+
   await connectDb();
 
   logger.info('Connected to MongoDB');
@@ -137,7 +159,7 @@ const startServer = async () => {
     res.send(updatedIndexHtml);
   });
 
-  app.listen(port, host, () => {
+  const server = app.listen(port, host, () => {
     if (host === '0.0.0.0') {
       logger.info(
         `Server listening on all interfaces at port ${port}. Use http://localhost:${port} to access it`,
@@ -148,6 +170,16 @@ const startServer = async () => {
 
     initializeMCPs(app);
   });
+
+  /**
+   * ------------------------------------------------------------------
+   * PATCH: Allow long-lived inbound connections (SSE)
+   * Prevent Node from killing requests after a fixed duration.
+   * ------------------------------------------------------------------
+   */
+  server.requestTimeout = 0;
+  server.headersTimeout = 0;
+  server.keepAliveTimeout = 0;
 };
 
 startServer();
