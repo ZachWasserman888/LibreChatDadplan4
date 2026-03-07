@@ -1,5 +1,6 @@
 version: 1.2.8
-
+balance:
+  enabled: false
 endpoints:
   custom:
     - name: "Customer Insights RAG"
